@@ -1,93 +1,185 @@
-import { headers } from "next/headers";
-import Link from "next/link";
-import { redirect } from "next/navigation";
+"use client";
 
-import { DiscordSignInButton } from "@/app/_components/discord-sign-in-button";
 import { LatestPost } from "@/app/_components/post";
-import { env } from "@/env";
-import { auth } from "@/server/better-auth";
-import { getSession } from "@/server/better-auth/server";
-import { api, HydrateClient } from "@/trpc/server";
+import { useRequireLogin } from "@/app/_components/require-login";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { authClient } from "@/server/better-auth/client";
+import { api } from "@/trpc/react";
+import { ArrowRight, Boxes, ShieldCheck, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Typography } from "./_components/typography";
 
-export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
-  const session = await getSession();
-  const hasDiscordAuth = Boolean(
-    env.BETTER_AUTH_DISCORD_CLIENT_ID && env.BETTER_AUTH_DISCORD_CLIENT_SECRET,
-  );
-
-  if (session) {
-    void api.post.getLatest.prefetch();
-  }
+export default function Home() {
+  const { signOut } = useRequireLogin();
+  const hello = api.post.hello.useQuery({ text: "from tRPC" });
+  const session = authClient.useSession();
+  const userName = session.data?.user?.name ?? "there";
 
   return (
-    <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-          </h1>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/usage/first-steps"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">First Steps →</h3>
-              <div className="text-lg">
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
-              </div>
-            </Link>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/introduction"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Documentation →</h3>
-              <div className="text-lg">
-                Learn more about Create T3 App, the libraries it uses, and how
-                to deploy it.
-              </div>
-            </Link>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-2xl text-white">
-              {hello ? hello.greeting : "Loading tRPC query..."}
-            </p>
-
-            <div className="flex flex-col items-center justify-center gap-4">
-              <p className="text-center text-2xl text-white">
-                {session && <span>Logged in as {session.user?.name}</span>}
-              </p>
-              {!session && hasDiscordAuth ? (
-                <DiscordSignInButton />
-              ) : !session ? (
-                <p className="text-center text-sm text-white/80">
-                  Set the Discord OAuth environment variables to enable sign in.
-                </p>
-              ) : (
+    <main className="min-h-screen">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-16">
+        <section className="grid gap-6 lg:grid-cols-[1.35fr_0.95fr]">
+          <Card>
+            <CardHeader className="flex flex-col gap-2">
+              <Badge variant="outline">Inventory Management System</Badge>
+              <CardTitle>
+                Replace the starter page with a real app front door.
+              </CardTitle>
+              <CardDescription>
+                Built with shadcn components, better-auth, Prisma, and tRPC so
+                the homepage feels like product UI instead of scaffold output.
+              </CardDescription>
+              <CardAction className="hidden lg:block">
+                <Badge>Authenticated</Badge>
+              </CardAction>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <div className="flex flex-wrap gap-3">
                 <form>
-                  <button
-                    className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-                    formAction={async () => {
-                      "use server";
-                      await auth.api.signOut({
-                        headers: await headers(),
-                      });
-                      redirect("/");
-                    }}
-                  >
+                  <Button formAction={signOut} type="submit" size="lg">
                     Sign out
-                  </button>
+                  </Button>
                 </form>
-              )}
-            </div>
-          </div>
 
-          {session?.user && <LatestPost />}
-        </div>
-      </main>
-    </HydrateClient>
+                <Link
+                  className={buttonVariants({
+                    variant: "outline",
+                    size: "lg",
+                  })}
+                  href="https://ui.shadcn.com/docs"
+                  target="_blank"
+                >
+                  Browse shadcn docs
+                </Link>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Card size="sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Boxes className="size-4" />
+                      Inventory
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Typography variant="muted">
+                      Organize stock operations behind a calmer landing page.
+                    </Typography>
+                  </CardContent>
+                </Card>
+                <Card size="sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ShieldCheck className="size-4" />
+                      Auth
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Typography variant="muted">
+                      Present the homepage as a signed-in application surface.
+                    </Typography>
+                  </CardContent>
+                </Card>
+                <Card size="sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="size-4" />
+                      Typed APIs
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Typography variant="muted">
+                      Preserve the working tRPC wiring and signed-in sample
+                      flow.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{`Welcome back, ${userName}`}</CardTitle>
+              <CardDescription>
+                {hello.data?.greeting ?? "Loading tRPC query..."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              <div className="flex items-center justify-between border-b pb-3">
+                <Typography as="span" variant="small">
+                  Authentication
+                </Typography>
+                <Badge>Signed in</Badge>
+              </div>
+              <div className="flex items-center justify-between border-b pb-3">
+                <Typography as="span" variant="small">
+                  Database
+                </Typography>
+                <Badge variant="outline">Prisma ready</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <Typography as="span" variant="small">
+                  API layer
+                </Typography>
+                <Badge variant="outline">tRPC online</Badge>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Link
+                className={buttonVariants({
+                  variant: "link",
+                  className: "h-auto p-0",
+                })}
+                href="https://create.t3.gg/en/introduction"
+                target="_blank"
+              >
+                Project stack overview
+                <ArrowRight className="size-4" />
+              </Link>
+            </CardFooter>
+          </Card>
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+          <Card>
+            <CardHeader>
+              <CardTitle>Ready for your inventory workflows</CardTitle>
+              <CardDescription>
+                The starter links are gone in favor of app-facing content built
+                with the shadcn registry components already configured in this
+                repo.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              <div className="border px-4 py-3">
+                <Typography variant="muted">
+                  Replace these cards with inventory KPIs, low-stock alerts, or
+                  recent purchase activity next.
+                </Typography>
+              </div>
+              <div className="border px-4 py-3">
+                <Typography variant="muted">
+                  Keep using the same `Card`, `Badge`, `Input`, and `Button`
+                  primitives for future dashboard sections.
+                </Typography>
+              </div>
+            </CardContent>
+          </Card>
+
+          <LatestPost />
+        </section>
+      </div>
+    </main>
   );
 }

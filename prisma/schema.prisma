@@ -14,6 +14,19 @@ datasource db {
   provider = "postgresql"
 }
 
+// For reference
+model Post {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdById String
+
+  @@index([name])
+}
+
 model User {
   id            String    @id
   name          String //@db.Text
@@ -24,6 +37,7 @@ model User {
   updatedAt     DateTime  @default(now()) @updatedAt
   sessions      Session[]
   accounts      Account[]
+  posts         Post[]
 
   @@unique([email])
   @@map("user")
@@ -64,7 +78,6 @@ model Account {
 
   @@map("account")
 }
-
 
 // Better Auth
 model Verification {

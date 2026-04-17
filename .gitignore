@@ -5,9 +5,6 @@
 /.pnp
 .pnp.js
 
-# generated files
-/generated
-
 # testing
 /coverage
 

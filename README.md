@@ -1,29 +1,134 @@
-# Create T3 App
+# Inventory Management System
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+This project is based on the T3 stack (Next.js + tRPC + Prisma + Tailwind), with Better Auth and Discord OAuth.
 
-## What's next? How do I make an app with this?
+## Developer Setup (Start Here)
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+### 1) Prerequisites
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+- [Node.js 20+](https://nodejs.org/en/download)
+- [pnpm](https://pnpm.io/installation) (repo uses `pnpm@10.33.0`)
+- PostgreSQL, either:
+  - via [Docker](https://www.docker.com/get-started/) (recommended), or
+  - local Postgres installed directly
+
+### 2) Clone and install dependencies
+
+```bash
+pnpm i
+```
+
+### 3) Configure environment variables
+
+Copy `.env.example` to `.env` and fill in required values:
+
+```bash
+cp .env.example .env
+```
+
+At minimum, set:
+
+- `DATABASE_URL`
+- `BETTER_AUTH_SECRET`
+- `BETTER_AUTH_URL` (usually `http://localhost:3000` in local dev)
+- `BETTER_AUTH_DISCORD_CLIENT_ID`
+- `BETTER_AUTH_DISCORD_CLIENT_SECRET`
+
+`BETTER_AUTH_SECRET` can be anything, but I would recommend generating something from
+[https://www.uuidgenerator.net/](https://www.uuidgenerator.net/) or [https://diceware.dmuth.org/](https://diceware.dmuth.org/)
+
+### 3.5) Set up Discord OAuth
+
+In the [Discord Developer Portal](https://discord.com/developers/applications):
+
+1. Create an application (name it whatever you want).
+2. Go into it -> OAuth2.
+3. In the OAuth2 section:
+   1. Add redirect URI: `http://localhost:3000/api/auth/callback/discord`
+   2. Copy client ID and client secret into `.env`:
+      - `BETTER_AUTH_DISCORD_CLIENT_ID`
+      - `BETTER_AUTH_DISCORD_CLIENT_SECRET`
+        - You will probably need to reset to generate a client secret
+
+### 4) Start Postgres (if using Docker)
+
+```bash
+docker compose up -d
+```
+
+### 5) Push Prisma schema
+
+```bash
+pnpm db:push
+```
+
+This creates/updates your database schema and runs Prisma client generation.
+
+### 6) Start the app
+
+```bash
+pnpm dev
+```
+
+App runs at [http://localhost:3000](http://localhost:3000).
+
+### 7) Helpful commands
+
+```bash
+pnpm check      # lint + typecheck
+pnpm db:studio  # inspect DB locally
+pnpm build      # production build
+```
+
+## Project Map
+
+### Frontend
+
+- `src/app/layout.tsx`: root app shell and global wrappers
+- `src/app/page.tsx`: main home page route
+- `src/app/_components/`: other custom components used in the app
+- `src/components/ui/`: UI components created by shadcn
+
+### Backend
+
+- `src/server/api/root.ts`: tRPC router composition root
+- `src/server/api/routers/`: tRPC feature routers
+- `src/server/api/trpc.ts`: tRPC context/procedures/middleware setup
+- `src/server/db.ts`: Prisma client initialization
+- `src/server/better-auth/`: Better Auth server/client configuration
+
+### API Routes
+
+- `src/app/api/trpc/[trpc]/route.ts`: tRPC HTTP handler
+- `src/app/api/auth/[...all]/route.ts`: Better Auth route handler
+
+### Database
+
+- `prisma/schema.prisma`: data model and database schema
+- Run `pnpm db:push` after schema changes
+
+## UI Components (shadcn)
+
+Shadcn UI components live in `src/components/ui/` (for example `button.tsx`, `card.tsx`, `input.tsx`). Prefer composing new feature UI from these shared building blocks before introducing one-off component patterns.
+
+## Next.js Basics in This Repo
+
+- `layout.tsx` files define persistent UI wrappers for routes.
+- `page.tsx` files define route content.
+- `src/app/_components/` contains local, route-adjacent components (only used by the app route tree).
+- `src/components/` is for reusable shared components across multiple routes/features.
+
+## Other Resources
+
+If you are not familiar with the different technologies used in this project, these docs are a good reference:
 
 - [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
 - [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
 - [Tailwind CSS](https://tailwindcss.com)
 - [tRPC](https://trpc.io)
 
-## Learn More
+To learn more about the T3 stack:
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
-
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
-
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
-
-## How do I deploy this?
-
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+- [T3 Documentation](https://create.t3.gg/)
+- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available)
+- [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app)

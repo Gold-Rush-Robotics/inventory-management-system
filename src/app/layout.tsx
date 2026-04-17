@@ -3,10 +3,14 @@ import "@/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist, JetBrains_Mono } from "next/font/google";
 
-import { TRPCReactProvider } from "@/trpc/react";
 import { cn } from "@/lib/utils";
+import { TRPCReactProvider } from "@/trpc/react";
+import RequireLogin from "./_components/require-login";
 
-const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -19,13 +23,27 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={cn(geist.variable, "font-mono", jetbrainsMono.variable)}>
-      <body>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+    <html
+      lang="en"
+      className={cn(
+        "dark",
+        geist.variable,
+        "font-mono",
+        jetbrainsMono.variable,
+      )}
+      suppressHydrationWarning
+    >
+      <body
+        className="bg-background text-foreground min-h-screen"
+        suppressHydrationWarning
+      >
+        <TRPCReactProvider>
+          <RequireLogin>{children}</RequireLogin>
+        </TRPCReactProvider>
       </body>
     </html>
   );
