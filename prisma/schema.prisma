@@ -108,6 +108,11 @@ model Item {
   // Relations
   properties Property[]
 
+  @@index([createdBy])
+  @@index([requiresCheckout]) // filtering checkout required items
+  @@index([totalQty]) // low qty sorting/reports
+  @@index([createdAt]) // recently added
+  
   @@map("items")
 }
 
@@ -125,6 +130,11 @@ model Property {
 
   // Relations
   items Item[]
+
+  // `type` is already covered by @@unique([type, title])
+  @@index([createdBy])
+  @@index([title]) // standalone title search/lookup
+  @@index([aliases], type: Gin) // array search
 
   @@unique([type, title]) // Prevents duplicates
   @@map("properties")
