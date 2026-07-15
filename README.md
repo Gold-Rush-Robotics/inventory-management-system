@@ -70,14 +70,33 @@ This creates/updates your database schema and runs Prisma client generation.
 pnpm dev
 ```
 
-App runs at [http://localhost:3000](http://localhost:3000).
+App runs at [http://localhost:3000](http://localhost:3000) (unless that port is in use).
 
 ### 7) Helpful commands
 
 ```bash
-pnpm check      # lint + typecheck
-pnpm db:studio  # inspect DB locally
-pnpm build      # production build
+# --- General Scripts ---
+
+pnpm dev           # start dev server
+
+pnpm check         # lint + typecheck
+pnpm lint:fix      # fix lint issues (that can be auto fixed)
+pnpm format:write  # format project (with prettier)
+
+pnpm preview       # production preview
+pnpm build         # create production build
+
+
+# --- Database scripts ---
+
+pnpm db:generate   # Regenerates prisma types
+pnpm db:migrate    # Creates a new migration (based on the changes from the previous migration and current schema.prisma)
+pnpm db:push       # Pushes the current schema to the database + generate types
+
+pnpm db:studio     # Built-in DB inspector
+pnpm db:reset      # Drops the database, re-applies all migrations, and re-seeds (destructive)
+
+pnpm db:deploy     # Applies unapplied migrations (e.g. for prod or after pulling changes)
 ```
 
 ## Project Map
@@ -105,7 +124,10 @@ pnpm build      # production build
 ### Database
 
 - `prisma/schema.prisma`: data model and database schema
-- Run `pnpm db:push` after schema changes
+- `prisma/migrations/`: migration history
+- For local setup or quick schema sync without a migration file, use `pnpm db:push`
+- When you open a PR that has schema changes, run `pnpm db:migrate`
+- In staging/production, apply migrations with `pnpm db:deploy`
 
 ## UI Components (shadcn)
 
