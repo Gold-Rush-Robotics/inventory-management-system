@@ -78,13 +78,26 @@ function renderCellValue(value: unknown): ReactNode {
   if (
     typeof value === "string" ||
     typeof value === "number" ||
+    typeof value === "bigint" ||
     isValidElement(value) ||
     Array.isArray(value)
   ) {
     return value;
   }
 
-  return String(value);
+  if (typeof value === "symbol") {
+    return value.description ?? "";
+  }
+
+  if (typeof value === "function") {
+    return value.name ? `[Function ${value.name}]` : "[Function]";
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "[Unserializable value]";
+  }
 }
 
 function toTanstackColumnDef<TData>(

@@ -41,6 +41,7 @@ export default function Home() {
         <Button
           variant="outline"
           className="ml-4 w-max shrink-0 flex-row items-center gap-3 px-3 py-2 pl-0"
+          onClick={() => void signOut()} // TODO: actually do this properly
         >
           <Avatar className="bg-card -ml-2" size="lg">
             <AvatarImage src={pfp} />
