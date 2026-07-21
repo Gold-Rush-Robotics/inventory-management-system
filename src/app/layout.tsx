@@ -3,6 +3,7 @@ import "@/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist, JetBrains_Mono } from "next/font/google";
 
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { TRPCReactProvider } from "@/trpc/react";
 import RequireLogin from "./_components/require-login";
@@ -41,9 +42,11 @@ export default async function RootLayout({
         className="bg-background text-foreground min-h-screen"
         suppressHydrationWarning
       >
-        <TRPCReactProvider>
-          <RequireLogin>{children}</RequireLogin>
-        </TRPCReactProvider>
+        <TooltipProvider>
+          <TRPCReactProvider>
+            <RequireLogin>{children}</RequireLogin>
+          </TRPCReactProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

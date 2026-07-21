@@ -97,8 +97,8 @@ model Item {
   id               Int     @id @default(autoincrement())
   requiresCheckout Boolean @default(false)
   maxCheckoutDays  Int?
-  totalQty         Int     @default(0)
-  notifyThreshold  Int     @default(0)
+  totalQty         Int?
+  notifyThreshold  Int?
 
   // Audit
   createdBy String
@@ -112,16 +112,23 @@ model Item {
   @@index([requiresCheckout]) // filtering checkout required items
   @@index([totalQty]) // low qty sorting/reports
   @@index([createdAt]) // recently added
-  
   @@map("items")
 }
 
+enum PropertyType {
+  NAME
+  DESCRIPTION
+  CATEGORY
+  TAG
+  LOCATION
+}
+
 model Property {
-  id      Int      @id @default(autoincrement())
-  type    String
+  id      Int          @id @default(autoincrement())
+  type    PropertyType
   title   String
   content String?
-  aliases String[] @default([])
+  aliases String[]     @default([])
 
   // Audit
   createdBy String
@@ -131,11 +138,11 @@ model Property {
   // Relations
   items Item[]
 
+  @@unique([type, title]) // Prevents duplicates
   // `type` is already covered by @@unique([type, title])
   @@index([createdBy])
+  @@index([type])
   @@index([title]) // standalone title search/lookup
   @@index([aliases], type: Gin) // array search
-
-  @@unique([type, title]) // Prevents duplicates
   @@map("properties")
 }
