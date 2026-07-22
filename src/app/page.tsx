@@ -85,7 +85,10 @@ function ItemsTable() {
     },
     {
       header: "Description",
-      value: (row) => propertyTitles(row, "DESCRIPTION").join(", "),
+      value: (row) =>
+        row.properties
+          .filter((property) => property.type === "NAME")
+          .map((property) => property.content),
     },
     {
       header: "Location",

@@ -109,15 +109,14 @@ model Item {
   properties Property[]
 
   @@index([createdBy])
-  @@index([requiresCheckout]) // filtering checkout required items
-  @@index([totalQty]) // low qty sorting/reports
-  @@index([createdAt]) // recently added
+  @@index([requiresCheckout]) // Filtering checkout required items
+  @@index([totalQty]) // Low qty sorting/reports
+  @@index([createdAt]) // Recently added
   @@map("items")
 }
 
 enum PropertyType {
   NAME
-  DESCRIPTION
   CATEGORY
   TAG
   LOCATION
@@ -138,11 +137,9 @@ model Property {
   // Relations
   items Item[]
 
-  @@unique([type, title]) // Prevents duplicates
-  // `type` is already covered by @@unique([type, title])
   @@index([createdBy])
   @@index([type])
-  @@index([title]) // standalone title search/lookup
-  @@index([aliases], type: Gin) // array search
+  @@index([title]) // Standalone title search/lookup
+  @@index([aliases], type: Gin) // Array search
   @@map("properties")
 }
