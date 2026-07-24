@@ -11,9 +11,9 @@ const clubMembers = [
 const randomMember = () => faker.helpers.arrayElement(clubMembers)
 
 const tagPool = [
-  "Electronics", "Mechanical", "Wiring", "Fasteners",
-  "Battery", "Sensors", "Motors", "Tools", "Competition Only",
-  "Practice Bot", "Consumable", "Shared", "Team Owned", "Needs Repair", "Loaner",
+  "Competition Only", "Practice Bot", "Consumable", "Shared",
+  "Team Owned", "Needs Repair", "Loaner", "Spare",
+  "New", "Used",
 ]
 
 const categoryPool = [
@@ -51,11 +51,12 @@ function randomLocationTitle(): string {
 function tagAliases(title: string): string[] {
   const other = title.toLowerCase().replace(/\s+/g, "-")
   const abbrevMap: Record<string, string[]> = {
-    "Electronics": ["elec", "e-parts"],
-    "Mechanical": ["mech"],
     "Competition Only": ["comp-only", "comp"],
     "Practice Bot": ["practice"],
     "Needs Repair": ["broken", "fix-needed"],
+    "Team Owned": ["owned", "team"],
+    "Consumable": ["consumable", "used-up"],
+    "Loaner": ["borrowed", "loan"],
   }
   return abbrevMap[title] ?? [other]
 }
