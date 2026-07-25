@@ -7,8 +7,8 @@ import {
   type PageSize,
 } from "@/app/_components/data-table";
 import { useRequireLogin } from "@/app/_components/require-login";
+import { TagBadge } from "@/app/_components/tag-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -59,13 +59,11 @@ export default function Home() {
   );
 }
 
-function propertyTitles(
+function propertyData(
   item: ItemRow,
   type: ItemRow["properties"][number]["type"],
 ) {
-  return item.properties
-    .filter((property) => property.type === type)
-    .map((property) => property.title);
+  return item.properties.filter((property) => property.type === type);
 }
 
 function ItemsTable() {
@@ -81,26 +79,24 @@ function ItemsTable() {
   const columns: ColumnDef<ItemRow>[] = [
     {
       header: "Name",
-      value: (row) => propertyTitles(row, "NAME").join(", "),
+      value: (row) => propertyData(row, "NAME").map((item) => item.title),
     },
     {
       header: "Description",
       value: (row) =>
-        row.properties
-          .filter((property) => property.type === "NAME")
-          .map((property) => property.content),
+        propertyData(row, "DESCRIPTION").map((item) => item.title),
     },
     {
       header: "Location",
-      value: (row) => propertyTitles(row, "LOCATION").join(", "),
+      value: (row) => propertyData(row, "LOCATION").map((item) => item.title),
     },
     {
       header: "Tags",
       value: (row) =>
-        propertyTitles(row, "TAG").map((tag) => (
-          <Badge key={tag} className="mr-1">
-            {tag}
-          </Badge>
+        propertyData(row, "TAG").map((tag) => (
+          <TagBadge key={tag.id} className="mr-1" color={tag.data?.color}>
+            {tag.title}
+          </TagBadge>
         )),
     },
     {
