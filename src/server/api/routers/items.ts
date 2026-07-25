@@ -1,5 +1,15 @@
+import {
+  propertyDataSchemas,
+  type Property,
+} from "@/lib/types/PropertyData";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
+import type { PropertyModel as PrismaProperty } from "../../../../generated/prisma/models/Property";
+
+function parseProperty(property: PrismaProperty): Property {
+  const data = propertyDataSchemas[property.type].parse(property.data);
+  return { ...property, data } as Property;
+}
 
 export const itemsRouter = createTRPCRouter({
   // create: protectedProcedure
@@ -43,7 +53,10 @@ export const itemsRouter = createTRPCRouter({
       ]);
 
       return {
-        items: items ?? [],
+        items: items.map((item) => ({
+          ...item,
+          properties: item.properties.map(parseProperty),
+        })),
         total,
       };
     }),

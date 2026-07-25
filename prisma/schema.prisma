@@ -129,6 +129,7 @@ model Property {
   title   String
   content String?
   aliases String[]     @default([])
+  data    Json?
 
   // Audit
   createdBy String
