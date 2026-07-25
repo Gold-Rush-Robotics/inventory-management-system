@@ -84,7 +84,7 @@ function ItemsTable() {
     {
       header: "Description",
       value: (row) =>
-        propertyData(row, "DESCRIPTION").map((item) => item.title),
+        propertyData(row, "NAME").map((item) => item.content ?? ""),
     },
     {
       header: "Location",
