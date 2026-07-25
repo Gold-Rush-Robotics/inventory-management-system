@@ -11,6 +11,7 @@ jobs:
     name: Lint and build
     runs-on: ubuntu-latest
     env:
+      # Dummy values so it will build without errors
       BETTER_AUTH_DISCORD_CLIENT_ID: test
       BETTER_AUTH_DISCORD_CLIENT_SECRET: test
       BETTER_AUTH_SECRET: test-123e4567-e89b-12d3-a456-426614174000
@@ -29,7 +30,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 26
           cache: pnpm
 
       - name: Install dependencies
