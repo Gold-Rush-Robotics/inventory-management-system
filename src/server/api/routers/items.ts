@@ -1,12 +1,9 @@
-import {
-  propertyDataSchemas,
-  type Property,
-} from "@/lib/types/PropertyData";
+import { propertyDataSchemas, type Property } from "@/lib/types/PropertyData";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 import type { PropertyModel as PrismaProperty } from "../../../../generated/prisma/models/Property";
 
-function parseProperty(property: PrismaProperty): Property {
+function parseProperty(property: PrismaProperty) {
   const data = propertyDataSchemas[property.type].parse(property.data);
   return { ...property, data } as Property;
 }

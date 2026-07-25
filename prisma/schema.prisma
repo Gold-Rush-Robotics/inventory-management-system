@@ -6,9 +6,11 @@ generator client {
   output   = "../generated/prisma"
 }
 
-// NOTE: When using mysql or sqlserver, uncomment the //@db.Text annotations in model Account below
-// Further reading:
-// https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+generator fabbrica {
+  provider    = "prisma-fabbrica"
+  output      = "../generated/fabbrica"
+  noTranspile = true
+}
 
 datasource db {
   provider = "postgresql"
@@ -28,19 +30,21 @@ model Post {
 }
 
 model User {
-  id            String    @id
-  name          String //@db.Text
+  id            String     @id
+  name          String
   email         String
-  emailVerified Boolean   @default(false)
-  image         String? //@db.Text
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
+  emailVerified Boolean    @default(false)
+  image         String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @default(now()) @updatedAt
   sessions      Session[]
   accounts      Account[]
   posts         Post[]
+  properties    Property[]
+  items         Item[]
 
   @@unique([email])
-  @@map("user")
+  @@map("users")
 }
 
 // Better Auth
@@ -50,45 +54,45 @@ model Session {
   token     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  ipAddress String? //@db.Text
-  userAgent String? //@db.Text
+  ipAddress String?
+  userAgent String?
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
-  @@map("session")
+  @@map("sessions")
 }
 
 // Better Auth
 model Account {
   id                    String    @id
-  accountId             String //@db.Text
-  providerId            String //@db.Text
+  accountId             String
+  providerId            String
   userId                String
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accessToken           String? //@db.Text
-  refreshToken          String? //@db.Text
-  idToken               String? //@db.Text
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
-  scope                 String? //@db.Text
-  password              String? //@db.Text
+  scope                 String?
+  password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  @@map("account")
+  @@map("accounts")
 }
 
 // Better Auth
 model Verification {
   id         String   @id
-  identifier String //@db.Text
-  value      String //@db.Text
+  identifier String
+  value      String
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) @updatedAt
 
-  @@map("verification")
+  @@map("verifications")
 }
 
 // Inventory management tables
@@ -101,14 +105,15 @@ model Item {
   notifyThreshold  Int?
 
   // Audit
-  createdBy String
-  createdAt DateTime @default(now())
-  editedAt  DateTime @updatedAt
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime @default(now())
+  editedAt    DateTime @updatedAt
 
   // Relations
   properties Property[]
 
-  @@index([createdBy])
+  @@index([createdById])
   @@index([requiresCheckout]) // Filtering checkout required items
   @@index([totalQty]) // Low qty sorting/reports
   @@index([createdAt]) // Recently added
@@ -131,14 +136,15 @@ model Property {
   data    Json?
 
   // Audit
-  createdBy String
-  createdAt DateTime @default(now())
-  editedAt  DateTime @updatedAt
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime @default(now())
+  editedAt    DateTime @updatedAt
 
   // Relations
   items Item[]
 
-  @@index([createdBy])
+  @@index([createdById])
   @@index([type])
   @@index([title]) // Standalone title search/lookup
   @@index([aliases], type: Gin) // Array search

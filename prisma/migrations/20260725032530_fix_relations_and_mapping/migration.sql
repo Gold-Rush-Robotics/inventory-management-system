@@ -1,0 +1,132 @@
+/*
+  Warnings:
+
+  - You are about to drop the column `createdBy` on the `items` table. All the data in the column will be lost.
+  - You are about to drop the column `createdBy` on the `properties` table. All the data in the column will be lost.
+  - You are about to drop the `account` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `session` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `user` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `verification` table. If the table is not empty, all the data it contains will be lost.
+  - Added the required column `createdById` to the `items` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `createdById` to the `properties` table without a default value. This is not possible if the table is not empty.
+
+*/
+-- DropForeignKey
+ALTER TABLE "Post" DROP CONSTRAINT "Post_createdById_fkey";
+
+-- DropForeignKey
+ALTER TABLE "account" DROP CONSTRAINT "account_userId_fkey";
+
+-- DropForeignKey
+ALTER TABLE "session" DROP CONSTRAINT "session_userId_fkey";
+
+-- DropIndex
+DROP INDEX "items_createdBy_idx";
+
+-- DropIndex
+DROP INDEX "properties_createdBy_idx";
+
+-- AlterTable
+ALTER TABLE "items" DROP COLUMN "createdBy",
+ADD COLUMN     "createdById" TEXT NOT NULL;
+
+-- AlterTable
+ALTER TABLE "properties" DROP COLUMN "createdBy",
+ADD COLUMN     "createdById" TEXT NOT NULL;
+
+-- DropTable
+DROP TABLE "account";
+
+-- DropTable
+DROP TABLE "session";
+
+-- DropTable
+DROP TABLE "user";
+
+-- DropTable
+DROP TABLE "verification";
+
+-- CreateTable
+CREATE TABLE "users" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "emailVerified" BOOLEAN NOT NULL DEFAULT false,
+    "image" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "sessions" (
+    "id" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "token" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "ipAddress" TEXT,
+    "userAgent" TEXT,
+    "userId" TEXT NOT NULL,
+
+    CONSTRAINT "sessions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "accounts" (
+    "id" TEXT NOT NULL,
+    "accountId" TEXT NOT NULL,
+    "providerId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "accessToken" TEXT,
+    "refreshToken" TEXT,
+    "idToken" TEXT,
+    "accessTokenExpiresAt" TIMESTAMP(3),
+    "refreshTokenExpiresAt" TIMESTAMP(3),
+    "scope" TEXT,
+    "password" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "accounts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "verifications" (
+    "id" TEXT NOT NULL,
+    "identifier" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "verifications_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "sessions_token_key" ON "sessions"("token");
+
+-- CreateIndex
+CREATE INDEX "items_createdById_idx" ON "items"("createdById");
+
+-- CreateIndex
+CREATE INDEX "properties_createdById_idx" ON "properties"("createdById");
+
+-- AddForeignKey
+ALTER TABLE "Post" ADD CONSTRAINT "Post_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "sessions" ADD CONSTRAINT "sessions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "accounts" ADD CONSTRAINT "accounts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "items" ADD CONSTRAINT "items_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "properties" ADD CONSTRAINT "properties_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

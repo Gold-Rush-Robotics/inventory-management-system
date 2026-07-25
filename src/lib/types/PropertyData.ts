@@ -14,7 +14,6 @@ export const categoryDataSchema = z.object({
 
 export const propertyDataSchemas = {
   NAME: z.null(),
-  DESCRIPTION: z.null(),
   CATEGORY: categoryDataSchema,
   TAG: tagDataSchema,
   LOCATION: z.null(),
