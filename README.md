@@ -137,8 +137,8 @@ Shadcn UI components live in `src/components/ui/` (for example `button.tsx`, `ca
 
 - `layout.tsx` files define persistent UI wrappers for routes.
 - `page.tsx` files define route content.
-- `src/app/_components/` contains local, route-adjacent components (only used by the app route tree).
-- `src/components/` is for reusable shared components across multiple routes/features.
+- `src/app/**/_components/` contains components used specific to that route (e.g. the `_components` folder in the root `app` directory is for anywhere, but inside `/test` would be components specific to routes under `/test`)
+- `src/components/ui` is for core reusable components installed via shadcn/ui. (No manually written components should go here).
 
 ## Other Resources
 
