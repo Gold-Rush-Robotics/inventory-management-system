@@ -1,4 +1,5 @@
 import { FlatCompat } from "@eslint/eslintrc";
+import prettierRecommended from "eslint-plugin-prettier/recommended";
 import tseslint from "typescript-eslint";
 
 const compat = new FlatCompat({
@@ -7,7 +8,7 @@ const compat = new FlatCompat({
 
 export default tseslint.config(
   {
-    ignores: [".next"],
+    ignores: [".next/**", "generated/**", "next-env.d.ts"],
   },
   ...compat.extends("next/core-web-vitals"),
   {
@@ -43,6 +44,13 @@ export default tseslint.config(
       parserOptions: {
         projectService: true,
       },
+    },
+  },
+  prettierRecommended,
+  {
+    files: ["src/components/ui/**/*"],
+    rules: {
+      "prettier/prettier": "off",
     },
   },
 );
