@@ -110,10 +110,10 @@ function ItemsTable() {
       value: (row) =>
         row.requiresCheckout ? (
           <Tooltip>
-            <TooltipTrigger>
-              <Button size="icon-xs" aria-label="Checkout">
-                <ShoppingCart />
-              </Button>
+            <TooltipTrigger
+              render={<Button size="icon-xs" aria-label="Checkout" />}
+            >
+              <ShoppingCart />
             </TooltipTrigger>
             <TooltipContent side="right">Checkout</TooltipContent>
           </Tooltip>
