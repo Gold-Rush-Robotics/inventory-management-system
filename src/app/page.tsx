@@ -17,10 +17,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { authClient } from "@/server/better-auth/client";
 import { api, type RouterOutputs } from "@/trpc/react";
 import { ShoppingCart } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Typography } from "./_components/typography";
 
 type ItemRow = RouterOutputs["items"]["get"]["items"][number];
@@ -31,13 +32,21 @@ export default function Home() {
   const userName = session.data?.user?.name ?? "Unknown User";
   const pfp = session.data?.user?.image ?? "";
 
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebouncedValue(searchInput, 250); // 250ms
+
   return (
     <main className="mx-auto min-h-screen w-full max-w-500 space-y-8 p-8">
       <Typography variant="h1">
         49er Robotics Inventory Management System
       </Typography>
       <div className="flex items-center gap-3">
-        <Input type="text" placeholder="Search items..." />
+        <Input
+          type="text"
+          placeholder='Search items... try "category: Electrical" or "tag: Sensors"'
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
         <Button
           variant="outline"
           className="ml-4 w-max shrink-0 flex-row items-center gap-3 px-3 py-2 pl-0"
@@ -53,7 +62,7 @@ export default function Home() {
         </Button>
       </div>
       <Card className="p-0">
-        <ItemsTable />
+        <ItemsTable search={debouncedSearch} />
       </Card>
     </main>
   );
@@ -66,15 +75,25 @@ function propertyData(
   return item.properties.filter((property) => property.type === type);
 }
 
-function ItemsTable() {
+function ItemsTable({ search }: { search: string }) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState<PageSize>(25);
+
+  // Reset to page 1 otherwise the user
+  // could get stuck on a page number beyond the new result range
+  useEffect(() => {
+    setPage(1);
+  }, [search, limit]);
 
   const {
     data: items,
     isLoading,
     error,
-  } = api.items.get.useQuery({ page, limit });
+  } = api.items.get.useQuery({
+    page,
+    limit,
+    search: search.trim() || undefined,
+  });
 
   const columns: ColumnDef<ItemRow>[] = [
     {
