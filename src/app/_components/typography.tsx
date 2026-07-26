@@ -1,7 +1,7 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const typographyVariants = cva("", {
   variants: {
@@ -21,14 +21,14 @@ const typographyVariants = cva("", {
   defaultVariants: {
     variant: "p",
   },
-})
+});
 
-type TypographyElement = keyof React.JSX.IntrinsicElements
+type TypographyElement = keyof React.JSX.IntrinsicElements;
 
 type TypographyProps = React.HTMLAttributes<HTMLElement> &
   VariantProps<typeof typographyVariants> & {
-    as?: TypographyElement
-  }
+    as?: TypographyElement;
+  };
 
 function Typography({
   as = "p",
@@ -39,7 +39,7 @@ function Typography({
   return React.createElement(as, {
     className: cn(typographyVariants({ variant }), className),
     ...props,
-  })
+  });
 }
 
-export { Typography, typographyVariants }
+export { Typography, typographyVariants };

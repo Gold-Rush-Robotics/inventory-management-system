@@ -19,7 +19,6 @@ export const propertyDataSchemas = {
   LOCATION: z.null(),
 } as const satisfies Record<PropertyType, z.ZodType>;
 
-
 export type PropertyDataMap = {
   [K in PropertyType]: z.infer<(typeof propertyDataSchemas)[K]>;
 };
