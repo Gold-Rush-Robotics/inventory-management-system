@@ -21,7 +21,9 @@ import { authClient } from "@/server/better-auth/client";
 import { api, type RouterOutputs } from "@/trpc/react";
 import { ShoppingCart } from "lucide-react";
 import { useState } from "react";
+import NewItemButton from "./_components/new-item";
 import { Typography } from "./_components/typography";
+import WysiwygInlinePreview from "./_components/wysiwyg-inline-preview";
 
 type ItemRow = RouterOutputs["items"]["get"]["items"][number];
 
@@ -38,9 +40,10 @@ export default function Home() {
       </Typography>
       <div className="flex items-center gap-3">
         <Input type="text" placeholder="Search items..." />
+        <NewItemButton />
         <Button
           variant="outline"
-          className="ml-4 w-max shrink-0 flex-row items-center gap-3 px-3 py-2 pl-0"
+          className="ml-2 w-max shrink-0 flex-row items-center gap-3 px-3 py-2 pl-0"
           onClick={() => void signOut()} // TODO: actually do this properly
         >
           <Avatar className="bg-card -ml-2" size="lg">
@@ -59,11 +62,16 @@ export default function Home() {
   );
 }
 
-function propertyData(
+function propertyData<T extends ItemRow["properties"][number]["type"]>(
   item: ItemRow,
-  type: ItemRow["properties"][number]["type"],
+  type: T,
 ) {
-  return item.properties.filter((property) => property.type === type);
+  return item.properties.filter(
+    (
+      property,
+    ): property is Extract<ItemRow["properties"][number], { type: T }> =>
+      property.type === type,
+  );
 }
 
 function ItemsTable() {
@@ -84,7 +92,9 @@ function ItemsTable() {
     {
       header: "Description",
       value: (row) =>
-        propertyData(row, "NAME").map((item) => item.content ?? ""),
+        propertyData(row, "NAME").map((item) => (
+          <WysiwygInlinePreview key={item.id} html={item.content ?? ""} />
+        )),
     },
     {
       header: "Location",

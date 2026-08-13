@@ -4,6 +4,12 @@ import type {
   PropertyType,
 } from "../../../generated/prisma/client";
 
+export const nameDataSchema = z
+  .object({
+    buyLink: z.string().url().optional(),
+  })
+  .nullable();
+
 export const tagDataSchema = z.object({
   color: z.string(),
 });
@@ -13,7 +19,7 @@ export const categoryDataSchema = z.object({
 });
 
 export const propertyDataSchemas = {
-  NAME: z.null(),
+  NAME: nameDataSchema,
   CATEGORY: categoryDataSchema,
   TAG: tagDataSchema,
   LOCATION: z.null(),
