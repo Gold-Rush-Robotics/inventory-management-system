@@ -1,14 +1,18 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { CSSProperties, ReactNode } from "react";
+import type { ComponentProps, CSSProperties } from "react";
 
-type TagBadgeProps = {
-  children: ReactNode;
+type TagBadgeProps = ComponentProps<typeof Badge> & {
   color?: string;
-  className?: string;
 };
 
-export function TagBadge({ children, color, className }: TagBadgeProps) {
+export function TagBadge({
+  children,
+  color,
+  className,
+  style,
+  ...props
+}: TagBadgeProps) {
   return (
     <Badge
       className={cn(
@@ -18,8 +22,10 @@ export function TagBadge({ children, color, className }: TagBadgeProps) {
       style={
         {
           "--tag-color": color ?? "var(--primary)",
+          ...style,
         } as CSSProperties
       }
+      {...props}
     >
       {children}
     </Badge>
