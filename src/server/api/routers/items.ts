@@ -1,8 +1,18 @@
 import { propertyDataSchemas, type Property } from "@/lib/types/PropertyData";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import {
+  buildPropertyWhere,
+  searchItemIds,
+  type FilterState,
+} from "../search/items-search";
+import { parseSearchQuery } from "../search/query-parser";
+import { resolveFilterIds } from "../search/resolve-aliases";
 import { z } from "zod";
 import { Prisma } from "../../../../generated/prisma/client";
+import { PropertyType } from "../../../../generated/prisma/enums";
 import type { PropertyModel as PrismaProperty } from "../../../../generated/prisma/models/Property";
+
+const MIN_KEYWORD_LENGTH = 3;
 
 function parseProperty(property: PrismaProperty) {
   const data = propertyDataSchemas[property.type].parse(property.data);
@@ -22,7 +32,6 @@ const createItemInput = z.object({
   stock: z.number().int().min(0).max(100000),
 });
 
-/** After loading rows from the db, check that each id exists as the expected type. */
 function linkedPropertiesSchema(
   linked: ReadonlyArray<{ id: number; type: string }>,
 ) {
@@ -51,34 +60,93 @@ export const itemsRouter = createTRPCRouter({
   get: protectedProcedure
     .input(
       z.object({
-        query: z
-          .object({
-            // todo: add query schema for searching
-          })
-          .optional(),
+        search: z.string().optional(),
+        tagIds: z.array(z.number().int().positive()).optional(),
+        categoryIds: z.array(z.number().int().positive()).optional(),
+        locationIds: z.array(z.number().int().positive()).optional(),
         page: z.number().optional(),
         limit: z.number().min(1).max(200).default(25),
       }),
     )
     .query(async ({ ctx, input }) => {
-      // todo: build where from input.query when search is added
-      const where = undefined;
+      const skip = input.page ? (input.page - 1) * input.limit : 0;
 
-      const [items, total] = await Promise.all([
-        ctx.db.item.findMany({
-          where,
-          orderBy: { editedAt: "desc" }, // todo: proper ordering
-          include: {
-            properties: true,
-          },
-          take: input.limit,
-          skip: input.page ? (input.page - 1) * input.limit : 0,
-        }),
-        ctx.db.item.count({ where }),
-      ]);
+      // Fallback: any directive syntax typed by hand but never confirmed
+      const parsed = parseSearchQuery(input.search ?? "");
+
+      const [parsedTagIds, parsedCategoryIds, parsedLocationIds] =
+        await Promise.all([
+          resolveFilterIds(ctx.db, PropertyType.TAG, parsed.tags),
+          resolveFilterIds(ctx.db, PropertyType.CATEGORY, parsed.categories),
+          resolveFilterIds(ctx.db, PropertyType.LOCATION, parsed.locations),
+        ]);
+
+      const explicitTagIds = input.tagIds ?? [];
+      const explicitCategoryIds = input.categoryIds ?? [];
+      const explicitLocationIds = input.locationIds ?? [];
+
+      const filters: FilterState = {
+        tagIds: Array.from(new Set([...explicitTagIds, ...parsedTagIds])),
+        categoryIds: Array.from(
+          new Set([...explicitCategoryIds, ...parsedCategoryIds]),
+        ),
+        locationIds: Array.from(
+          new Set([...explicitLocationIds, ...parsedLocationIds]),
+        ),
+        tagsRequested: explicitTagIds.length > 0 || parsed.tags.length > 0,
+        categoriesRequested:
+          explicitCategoryIds.length > 0 || parsed.categories.length > 0,
+        locationsRequested:
+          explicitLocationIds.length > 0 || parsed.locations.length > 0,
+      };
+
+      const keywords = parsed.keywords;
+      const hasSearchableKeywords = keywords.length >= MIN_KEYWORD_LENGTH;
+
+      if (!hasSearchableKeywords) {
+        const where = buildPropertyWhere(filters);
+
+        const [items, total] = await Promise.all([
+          ctx.db.item.findMany({
+            where,
+            orderBy: { editedAt: "desc" },
+            include: { properties: true },
+            take: input.limit,
+            skip,
+          }),
+          ctx.db.item.count({ where }),
+        ]);
+
+        return {
+          items: items.map((item) => ({
+            ...item,
+            properties: item.properties.map(parseProperty),
+          })),
+          total,
+        };
+      }
+
+      const { ids, total } = await searchItemIds(ctx.db, keywords, filters, {
+        limit: input.limit,
+        skip,
+      });
+
+      if (ids.length === 0) {
+        return { items: [], total };
+      }
+
+      const items = await ctx.db.item.findMany({
+        where: { id: { in: ids } },
+        include: { properties: true },
+      });
+
+      const itemsById = new Map(items.map((item) => [item.id, item]));
+      const ordered = ids
+        .map((id) => itemsById.get(id))
+        .filter((item): item is NonNullable<typeof item> => item !== undefined);
 
       return {
-        items: items.map((item) => ({
+        items: ordered.map((item) => ({
           ...item,
           properties: item.properties.map(parseProperty),
         })),

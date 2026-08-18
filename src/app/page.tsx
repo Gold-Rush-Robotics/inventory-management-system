@@ -7,20 +7,23 @@ import {
   type PageSize,
 } from "@/app/_components/data-table";
 import { useRequireLogin } from "@/app/_components/require-login";
+import SmartSearchInput, {
+  type SmartSearchValue,
+} from "@/app/_components/smart-search-input";
 import { TagBadge } from "@/app/_components/tag-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { authClient } from "@/server/better-auth/client";
 import { api, type RouterOutputs } from "@/trpc/react";
 import { ShoppingCart } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NewItemButton from "./_components/new-item";
 import { Typography } from "./_components/typography";
 import WysiwygInlinePreview from "./_components/wysiwyg-inline-preview";
@@ -33,13 +36,19 @@ export default function Home() {
   const userName = session.data?.user?.name ?? "Unknown User";
   const pfp = session.data?.user?.image ?? "";
 
+  const [search, setSearch] = useState<SmartSearchValue>({
+    chips: [],
+    text: "",
+  });
+  const debouncedText = useDebouncedValue(search.text, 300);
+
   return (
     <main className="mx-auto min-h-screen w-full max-w-500 space-y-8 p-8">
       <Typography variant="h1">
         49er Robotics Inventory Management System
       </Typography>
       <div className="flex items-center gap-3">
-        <Input type="text" placeholder="Search items..." />
+        <SmartSearchInput value={search} onChange={setSearch} />
         <NewItemButton />
         <Button
           variant="outline"
@@ -56,7 +65,7 @@ export default function Home() {
         </Button>
       </div>
       <Card className="p-0">
-        <ItemsTable />
+        <ItemsTable chips={search.chips} text={debouncedText} />
       </Card>
     </main>
   );
@@ -65,7 +74,7 @@ export default function Home() {
 function propertyData<T extends ItemRow["properties"][number]["type"]>(
   item: ItemRow,
   type: T,
-) {
+): Extract<ItemRow["properties"][number], { type: T }>[] {
   return item.properties.filter(
     (
       property,
@@ -74,15 +83,41 @@ function propertyData<T extends ItemRow["properties"][number]["type"]>(
   );
 }
 
-function ItemsTable() {
+function ItemsTable({
+  chips,
+  text,
+}: {
+  chips: SmartSearchValue["chips"];
+  text: string;
+}) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState<PageSize>(25);
+
+  const tagIds = chips.filter((c) => c.type === "tag").map((c) => c.id);
+  const categoryIds = chips
+    .filter((c) => c.type === "category")
+    .map((c) => c.id);
+  const locationIds = chips
+    .filter((c) => c.type === "location")
+    .map((c) => c.id);
+  const chipsKey = chips.map((c) => c.key).join(",");
+
+  useEffect(() => {
+    setPage(1);
+  }, [text, chipsKey]);
 
   const {
     data: items,
     isLoading,
     error,
-  } = api.items.get.useQuery({ page, limit });
+  } = api.items.get.useQuery({
+    page,
+    limit,
+    search: text.trim() || undefined,
+    tagIds: tagIds.length ? tagIds : undefined,
+    categoryIds: categoryIds.length ? categoryIds : undefined,
+    locationIds: locationIds.length ? locationIds : undefined,
+  });
 
   const columns: ColumnDef<ItemRow>[] = [
     {
